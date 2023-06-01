@@ -1,0 +1,17 @@
+// piezo buzzer 제어하기
+// 도,레,미 반복하기
+
+void setup()
+{
+  pinMode(7, OUTPUT);
+}
+
+void loop()
+{
+  tone(7, 523, 100); // play tone 60 (C5 = 523 Hz)
+  delay(500); // Wait for 500 millisecond(s)
+  tone(7, 587, 100); // play tone 62 (D5 = 587 Hz)
+  delay(500); // Wait for 500 millisecond(s)
+  tone(7, 659, 100); // play tone 64 (E5 = 659 Hz)
+  delay(500); // Wait for 500 millisecond(s)
+}
