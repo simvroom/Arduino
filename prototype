@@ -1,0 +1,92 @@
+// prototype
+
+#include <SoftwareSerial.h>
+
+// Pin definitions
+const int pagerMotorPin1 = 2;
+const int pagerMotorPin2 = 3;
+const int pagerMotorPin3 = 4;
+const int pagerMotorPin4 = 5;
+const int buzzerPin = 6;
+
+// Bluetooth module
+SoftwareSerial bluetoothSerial(7, 8);  // RX, TX
+
+// Melody notes
+int melody[] = { 262, 294, 330, 349, 392, 440, 494, 523 };
+int noteDuration = 200;
+
+void setup() {
+  // Set pager motor pins as output
+  pinMode(pagerMotorPin1, OUTPUT);
+  pinMode(pagerMotorPin2, OUTPUT);
+  pinMode(pagerMotorPin3, OUTPUT);
+  pinMode(pagerMotorPin4, OUTPUT);
+
+  // Set buzzer pin as output
+  pinMode(buzzerPin, OUTPUT);
+
+  // Set baud rate for Bluetooth communication
+  bluetoothSerial.begin(9600);
+}
+
+void loop() {
+  // Check if Bluetooth data is available
+  if (bluetoothSerial.available()) {
+    // Read the incoming data
+    char data = bluetoothSerial.read();
+
+    // Check if the received data is the trigger signal
+    if (data == 'A') {
+      // Trigger the pager motors and buzzer
+      triggerMotorsAndBuzzer();
+    }
+  }
+}
+
+void triggerMotorsAndBuzzer() {
+  // Repeat the behavior 3 times
+  for (int i = 0; i < 3; i++) {
+    // Vibrate motors for 5 seconds
+    for (int j = 0; j < 5; j++) {
+      // Vibrate motor 1
+      digitalWrite(pagerMotorPin1, HIGH);
+      delay(500);
+      digitalWrite(pagerMotorPin1, LOW);
+
+      // Vibrate motor 2
+      digitalWrite(pagerMotorPin2, HIGH);
+      delay(500);
+      digitalWrite(pagerMotorPin2, LOW);
+
+      // Vibrate motor 3
+      digitalWrite(pagerMotorPin3, HIGH);
+      delay(500);
+      digitalWrite(pagerMotorPin3, LOW);
+
+      // Vibrate motor 4
+      digitalWrite(pagerMotorPin4, HIGH);
+      delay(500);
+      digitalWrite(pagerMotorPin4, LOW);
+
+      // Rest for 1 second
+      delay(1000);
+    }
+
+    // Play the wake-up sound for 18 seconds
+    int numberOfNotes = sizeof(melody) / sizeof(melody[0]);
+    for (int k = 0; k < 18 * 1000 / (numberOfNotes * noteDuration); k++) {
+      for (int note = 0; note < numberOfNotes; note++) {
+        int noteDurationWithRest = noteDuration * 1.30;  // Add a slight pause between notes
+
+        // Play the note on the buzzer
+        tone(buzzerPin, melody[note], noteDurationWithRest);
+        delay(noteDurationWithRest);
+
+        // Stop the note
+        noTone(buzzerPin);
+        delay(20);  // Add a slight pause between notes
+      }
+    }
+  }
+}
