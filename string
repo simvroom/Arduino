@@ -1,0 +1,54 @@
+#include <SoftwareSerial.h>
+
+SoftwareSerial mySerial(7, 8); // RX, TX
+
+const int vibrationPin = 11;
+const int soundPin = 4;
+const int soundDuration = 4 * 1000; // 10 seconds
+const int onSoundInterval = 500;  // 삐- 삐- 소리 사이의 시간
+const int offSoundInterval = 500; // 소리의 길이
+
+unsigned long startTime;
+bool signalReceived = false;
+
+void setup() {
+  pinMode(vibrationPin, OUTPUT);
+  pinMode(soundPin, OUTPUT);
+
+  digitalWrite(vibrationPin, LOW);
+  digitalWrite(soundPin, LOW);
+
+  Serial.begin(9600);
+  mySerial.begin(9600);
+}
+
+void loop() {
+  if (mySerial.available()) {
+    String message = mySerial.readString();
+    if (message[0] == '1') {
+      startTime = millis();  // 신호를 받은 시간 포착
+      signalReceived = true;
+      digitalWrite(vibrationPin, HIGH);
+      
+    }
+  }
+
+  if (signalReceived) {
+    unsigned long elapsedTime = millis() - startTime;
+
+    // 신호를 받은지 10초가 지났다면 진동을 멈추고 소리도 꺼 줍니다.
+    if (elapsedTime > soundDuration) {
+      digitalWrite(vibrationPin, LOW);
+      digitalWrite(soundPin, LOW);
+      signalReceived = false;
+    }
+    // 삐- 뒤에 지속되는 소리가 없는 기간
+    else if (elapsedTime % (onSoundInterval + offSoundInterval) < offSoundInterval) {
+      digitalWrite(soundPin, HIGH);
+    }
+    // 삐- 소리가 나는 기간
+    else {
+      digitalWrite(soundPin, LOW);
+    }
+  }
+}
