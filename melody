@@ -1,0 +1,74 @@
+#include <SoftwareSerial.h>
+
+SoftwareSerial hc06(7, 8);
+
+const int motorPin = 11;
+const int piezoBuzzerPin = 4;
+unsigned long motorStartTime = 0;
+bool motorRunning = false;
+
+void playTone(int frequency, int duration, int pause = 100) {
+  tone(piezoBuzzerPin, frequency, duration);
+
+  unsigned long currentTime = millis();
+  while ((millis() - currentTime) <= duration) {
+    if ((millis() - motorStartTime) >= 1000) {
+      motorRunning = !motorRunning;
+      motorStartTime = millis();
+    }
+
+    if (motorRunning) {
+      analogWrite(motorPin, 255);
+    } else {
+      analogWrite(motorPin, 0);
+    }
+
+    delay(10);
+  }
+
+  noTone(piezoBuzzerPin);
+  delay(pause);
+}
+
+void playSong() {
+  motorStartTime = millis();
+  motorRunning = true;
+
+  // 비행기 동요 1절
+  playTone(330, 200);
+  playTone(294, 200);
+  playTone(330, 200);
+  playTone(440, 200);
+  playTone(294, 200);
+  playTone(330, 200);
+  playTone(294, 200);
+  playTone(220, 400);
+}
+
+void setup() {
+  Serial.begin(9600);
+  hc06.begin(9600);
+
+  pinMode(piezoBuzzerPin, OUTPUT);
+  pinMode(motorPin, OUTPUT);
+
+  Serial.println("HC-06 Bluetooth connected!");
+}
+
+void loop() {
+  if (hc06.available()) {
+    String received = "";
+    while (hc06.available()) {
+      received += (char)hc06.read();
+      delay(5);
+    }
+
+    Serial.println("Received: " + received);
+
+    if (received == "100") {
+      playSong();
+      motorRunning = false;
+      analogWrite(motorPin, 0);
+    }
+  }
+}
